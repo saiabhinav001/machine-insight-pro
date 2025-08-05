@@ -33,30 +33,16 @@ export default async function handler(request, response) {
     // 2. Get the machine data sent from the frontend
     const frontendData = request.body.input_data[0].values[0];
 
-    // 3. *** FIX: Construct the payload with ALL required fields for the AutoAI model ***
+    // 3. Construct the payload with ALL required fields for the AutoAI model
     const payload = {
       "input_data": [{
         "fields": [
-          "UDI",
-          "Product ID",
-          "Type",
-          "Air temperature [K]",
-          "Process temperature [K]",
-          "Rotational speed [rpm]",
-          "Torque [Nm]",
-          "Tool wear [min]",
-          "Target" // This is the column the model predicts, but the API requires it as an input field.
+          "UDI", "Product ID", "Type", "Air temperature [K]", "Process temperature [K]", 
+          "Rotational speed [rpm]", "Torque [Nm]", "Tool wear [min]", "Target"
         ],
         "values": [[
-          0,                  // Placeholder for UDI
-          "L50070",           // Placeholder for Product ID
-          frontendData[0],    // Type
-          frontendData[1],    // Air temperature
-          frontendData[2],    // Process temperature
-          frontendData[3],    // Rotational speed
-          frontendData[4],    // Torque
-          frontendData[5],    // Tool wear
-          0                   // Placeholder for Target
+          0, "L50070", frontendData[0], frontendData[1], frontendData[2], 
+          frontendData[3], frontendData[4], frontendData[5], 0
         ]]
       }]
     };
@@ -74,24 +60,24 @@ export default async function handler(request, response) {
     if (!predictionResponse.ok) {
       const errorBody = await predictionResponse.text();
       console.error("Error response from IBM:", errorBody);
-      throw new Error(`Prediction API call failed. Status: ${predictionResponse.status}. Check Vercel logs for details.`);
+      throw new Error(`Prediction API call failed. Status: ${predictionResponse.status}.`);
     }
 
     const predictionData = await predictionResponse.json();
 
-    // 5. EXTRACT PREDICTION AND REAL-TIME CONFIDENCE
+    // 5. EXTRACT THE TEXT PREDICTION AND REAL-TIME CONFIDENCE
     const predictionResult = predictionData.predictions[0]?.values[0];
     if (!predictionResult) {
         throw new Error("Invalid response structure from prediction API.");
     }
     
-    const predictionLabel = predictionResult[0];
+    const predictionText = predictionResult[0]; // This is now a STRING, e.g., "Overstrain Failure"
     const probabilityArray = predictionResult[1];
     const confidenceScore = Math.max(...probabilityArray);
 
-    // 6. Send the final prediction AND confidence back to the frontend
+    // 6. Send the final prediction TEXT and confidence back to the frontend
     return response.status(200).json({
-        prediction: predictionLabel,
+        prediction: predictionText,
         confidence: confidenceScore
     });
 

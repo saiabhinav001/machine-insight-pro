@@ -11,13 +11,11 @@ export default async function handler(request, response) {
   const WML_ENDPOINT_URL = process.env.WML_ENDPOINT_URL;
 
   if (!WML_API_KEY || !WML_ENDPOINT_URL) {
-    console.error("Server configuration error: Missing API Key or Endpoint URL.");
     return response.status(500).json({ message: 'Server configuration error.' });
   }
 
   try {
     // 1. Get IBM Cloud IAM token
-    console.log("Step 1: Authenticating with IBM Cloud...");
     const tokenResponse = await fetch("https://iam.cloud.ibm.com/identity/token", {
       method: "POST",
       headers: {
@@ -28,43 +26,60 @@ export default async function handler(request, response) {
     });
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error("Authentication failed:", errorText);
       throw new Error('Authentication with IBM Cloud failed.');
     }
     const tokenData = await tokenResponse.json();
-    console.log("Step 1: Authentication successful.");
 
     // 2. Get the machine data sent from the frontend
-    const machineData = request.body;
-    console.log("Step 2: Received machine data from frontend:", JSON.stringify(machineData, null, 2));
+    const frontendData = request.body.input_data[0].values[0];
 
-    // 3. Make the prediction request to IBM Watson
-    console.log(`Step 3: Making prediction request to endpoint: ${WML_ENDPOINT_URL}`);
+    // 3. *** FIX: Construct the payload with ALL required fields for the AutoAI model ***
+    const payload = {
+      "input_data": [{
+        "fields": [
+          "UDI",
+          "Product ID",
+          "Type",
+          "Air temperature [K]",
+          "Process temperature [K]",
+          "Rotational speed [rpm]",
+          "Torque [Nm]",
+          "Tool wear [min]",
+          "Target" // This is the column the model predicts, but the API requires it as an input field.
+        ],
+        "values": [[
+          0,                  // Placeholder for UDI
+          "L50070",           // Placeholder for Product ID
+          frontendData[0],    // Type
+          frontendData[1],    // Air temperature
+          frontendData[2],    // Process temperature
+          frontendData[3],    // Rotational speed
+          frontendData[4],    // Torque
+          frontendData[5],    // Tool wear
+          0                   // Placeholder for Target
+        ]]
+      }]
+    };
+
+    // 4. Make the prediction request to IBM Watson
     const predictionResponse = await fetch(WML_ENDPOINT_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${tokenData.access_token}`
       },
-      body: JSON.stringify(machineData)
+      body: JSON.stringify(payload)
     });
 
-    // THIS IS THE CRITICAL DEBUGGING STEP
     if (!predictionResponse.ok) {
-      // We will now log the exact error response from IBM
       const errorBody = await predictionResponse.text();
-      console.error(`Prediction API call failed with status: ${predictionResponse.status}`);
       console.error("Error response from IBM:", errorBody);
-      // Create a more informative error message for the frontend
       throw new Error(`Prediction API call failed. Status: ${predictionResponse.status}. Check Vercel logs for details.`);
     }
 
     const predictionData = await predictionResponse.json();
-    console.log("Step 3: Prediction successful. Response:", JSON.stringify(predictionData, null, 2));
 
-    // 4. EXTRACT PREDICTION AND REAL-TIME CONFIDENCE
-    console.log("Step 4: Extracting prediction and confidence...");
+    // 5. EXTRACT PREDICTION AND REAL-TIME CONFIDENCE
     const predictionResult = predictionData.predictions[0]?.values[0];
     if (!predictionResult) {
         throw new Error("Invalid response structure from prediction API.");
@@ -73,9 +88,8 @@ export default async function handler(request, response) {
     const predictionLabel = predictionResult[0];
     const probabilityArray = predictionResult[1];
     const confidenceScore = Math.max(...probabilityArray);
-    console.log(`Step 4: Extracted Label: ${predictionLabel}, Confidence: ${confidenceScore}`);
 
-    // 5. Send the final prediction AND confidence back to the frontend
+    // 6. Send the final prediction AND confidence back to the frontend
     return response.status(200).json({
         prediction: predictionLabel,
         confidence: confidenceScore

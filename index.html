@@ -690,14 +690,13 @@
          */
         document.addEventListener('DOMContentLoaded', function() {
             // --- CONFIGURATION ---
-            
             const labelMapping = {
-                0: { text: "Heat Dissipation Failure", type: 'warning' },
-                1: { text: "No Failure", type: 'success' },
+                0: { text: "No Failure", type: 'success' },
+                1: { text: "Power Failure", type: 'error' },
                 2: { text: "Overstrain Failure", type: 'warning' },
-                3: { text: "Power Failure", type: 'error' },
-                4: { text: "Random Failures", type: 'warning' },
-                5: { text: "Tool Wear Failure", type: 'error' }
+                3: { text: "Tool Wear Failure", type: 'error' },
+                4: { text: "Heat Dissipation Failure", type: 'warning' },
+                5: { text: "Random Failures", type: 'warning' }
             };
 
             const statusStyles = {

@@ -38,7 +38,7 @@ export default async function handler(request, response) {
       "input_data": [{
         "fields": [
           "UDI", "Product ID", "Type", "Air temperature [K]", "Process temperature [K]", 
-          "Rotational speed [rpm]", "Torque [Nm]", "Tool wear [min]", "Failure Type"
+          "Rotational speed [rpm]", "Torque [Nm]", "Tool wear [min]", "Target"
         ],
         "values": [[
           0,                // Placeholder for UDI
@@ -49,7 +49,7 @@ export default async function handler(request, response) {
           frontendData[3],  // Rotational speed
           frontendData[4],  // Torque
           frontendData[5],  // Tool wear
-          "No Failure"      // Placeholder for Failure Type (the column being predicted)
+          0                 // Placeholder for Target (as required by the schema)
         ]]
       }]
     };

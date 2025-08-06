@@ -35,8 +35,8 @@ export default async function handler(request, response) {
     // 2. Get the machine data sent from the frontend
     const frontendData = request.body.input_data[0].values[0];
 
-    // 3. Construct the full payload required by the AutoAI model,
-    //    including placeholder values for fields not present in the UI form.
+    // 3. Construct the full payload required by the AutoAI model.
+    //    This includes placeholder values for fields not present in the UI form.
     const payload = {
       "input_data": [{
         "fields": [
@@ -52,7 +52,7 @@ export default async function handler(request, response) {
           frontendData[3],  // Rotational speed from form
           frontendData[4],  // Torque from form
           frontendData[5],  // Tool wear from form
-          0                 // Placeholder for Target (as required by the model schema)
+          1                 // FIXED: Set Target to 1 to allow failure prediction
         ]]
       }]
     };

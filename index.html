@@ -799,6 +799,8 @@
 
                 try {
                     const formData = new FormData(e.target);
+                    // This payload contains only the fields from the form.
+                    // The backend proxy (/api/predict) will add the required placeholders.
                     const payload = {
                         "input_data": [{
                             "fields": ["Type", "Air temperature [K]", "Process temperature [K]", "Rotational speed [rpm]", "Torque [Nm]", "Tool wear [min]"],
@@ -833,6 +835,7 @@
                         throw new Error("Invalid response structure from backend.");
                     }
                     
+                    // Map the text prediction to a UI style type ('success', 'warning', 'error')
                     const predictionType = failureTypeMapping[predictionText] || 'warning';
                     
                     displayResult(predictionText, predictionType, confidenceScore);
@@ -893,6 +896,7 @@
 
                 const confidencePercentage = Math.round(confidence * 100);
 
+                // A short delay to make the confidence bar animation visible
                 setTimeout(() => {
                     confidenceFill.style.width = `${confidencePercentage}%`;
                     confidenceText.textContent = `Confidence: ${confidencePercentage}%`;

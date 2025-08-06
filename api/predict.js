@@ -38,11 +38,18 @@ export default async function handler(request, response) {
       "input_data": [{
         "fields": [
           "UDI", "Product ID", "Type", "Air temperature [K]", "Process temperature [K]", 
-          "Rotational speed [rpm]", "Torque [Nm]", "Tool wear [min]", "Target"
+          "Rotational speed [rpm]", "Torque [Nm]", "Tool wear [min]", "Failure Type"
         ],
         "values": [[
-          0, "L50070", frontendData[0], frontendData[1], frontendData[2], 
-          frontendData[3], frontendData[4], frontendData[5], 0
+          0,                // Placeholder for UDI
+          "L50070",         // Placeholder for Product ID
+          frontendData[0],  // Type
+          frontendData[1],  // Air temperature
+          frontendData[2],  // Process temperature
+          frontendData[3],  // Rotational speed
+          frontendData[4],  // Torque
+          frontendData[5],  // Tool wear
+          "No Failure"      // Placeholder for Failure Type (the column being predicted)
         ]]
       }]
     };
@@ -71,7 +78,7 @@ export default async function handler(request, response) {
         throw new Error("Invalid response structure from prediction API.");
     }
     
-    const predictionText = predictionResult[0]; // This is now a STRING, e.g., "Overstrain Failure"
+    const predictionText = predictionResult[0]; // This is a STRING, e.g., "Overstrain Failure"
     const probabilityArray = predictionResult[1];
     const confidenceScore = Math.max(...probabilityArray);
 
